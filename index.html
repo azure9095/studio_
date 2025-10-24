@@ -180,14 +180,12 @@ function removeFamily(){
 function addCm(input){let val=input.value.replace(/[^0-9]/g,''); if(val) input.value=val+'cm';}
 function removeCm(input){input.value=input.value.replace(/[^0-9]/g,'');}
 
-// 수정된 하의 옵션 적용
 function updateSizes(select){
   const row = select.closest("tr");
   const top = row.querySelector(".topSize");
   const bottom = row.querySelector(".bottomSize");
   const shoe = row.querySelector(".shoeSize");
 
-  // 상의
   top.innerHTML = '<option value="">선택</option>';
   let topSizes = [];
   if(select.value==='male') topSizes = maleSizes;
@@ -198,7 +196,6 @@ function updateSizes(select){
     top.appendChild(opt);
   });
 
-  // 하의(inch)
   bottom.innerHTML = '<option value="">선택</option>';
   if(select.value==='male' || select.value==='female'){
     for(let i=20;i<=40;i++){
@@ -210,7 +207,6 @@ function updateSizes(select){
     bottom.appendChild(opt);
   }
 
-  // 신발 (기존)
   shoe.innerHTML = '<option value="">선택</option>';
   for(let i=130;i<=300;i+=10){
     const opt = document.createElement('option'); opt.value=i; opt.textContent=i;
@@ -252,6 +248,7 @@ function _restoreAfterCapture(container, saved){
   window.scrollTo(saved.original.scrollX, saved.original.scrollY);
 }
 
+/* ✅ 수정된 captureClipboard 함수 */
 async function captureClipboard(){
   const container = document.getElementById('captureArea');
   const saved = await _expandForCapture(container);
@@ -280,7 +277,6 @@ async function captureClipboard(){
     windowHeight: document.documentElement.scrollHeight,
     backgroundColor:"#ffffff"
   });
-  // 복원
   familyBlocks.forEach((fb,i)=>{
     fb.style.background = originalStyles[i].background;
     fb.style.border = originalStyles[i].border;
@@ -290,20 +286,31 @@ async function captureClipboard(){
   _restoreAfterCapture(container, saved);
 
   const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
-  try{
+  try {
     await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
     alert('클립보드에 복사되었습니다!');
-  }catch(e){
+  } catch (e) {
     console.warn('Clipboard write failed:', e);
-    if(confirm('클립보드 저장이 불가능합니다. 다운로드 하시겠습니까?')){
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      alert('모바일에서는 클립보드 복사가 제한되어 자동으로 다운로드됩니다.');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = '의상정보.png';
       link.click();
+    } else {
+      if (confirm('클립보드 저장이 불가능합니다. 이미지를 다운로드하시겠습니까?')) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = '의상정보.png';
+        link.click();
+      }
     }
   }
 }
 
+/* -------------------- 이미지 저장 -------------------- */
 async function downloadImage(){
   const container = document.getElementById('captureArea');
   const saved = await _expandForCapture(container);
@@ -360,4 +367,3 @@ window.onload=function(){resetTable();};
 </script>
 </body>
 </html>
-
